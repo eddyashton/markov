@@ -1,5 +1,6 @@
 import math
 from collections import defaultdict
+import nltk
 
 
 def pairs(s):
@@ -38,23 +39,12 @@ def find_best_token(s, i, ranked_tokens):
 
 
 def tokenise(s):
-    if not s.startswith("\n"):
-        s = "\n" + s
-    if not s.endswith("\n"):
-        s = s + "\n"
+    tokens = ["\n"]
+    for line in s.splitlines():
+        tokens += nltk.tokenize.SyllableTokenizer().tokenize(line)
+        tokens.append("\n")
 
-    ranked_tokens = find_tokens(s)
-
-    token_stream = []
-
-    i = 0
-    while i < len(s):
-        next_token = find_best_token(s, i, ranked_tokens)
-        i += len(next_token)
-        token_stream.append(next_token)
-
-    print(f"Tokenised: {s} -> {token_stream}")
-    return token_stream
+    return tokens
 
 
 def train_model(filename):
