@@ -11,11 +11,16 @@ def generate_values(model, n, seeds):
         n = 1
 
     if n is not None:
+        print(f"Generating {n} random value{'s' if n > 1 else ''}")
         width = len(str(n))
         for i in range(n):
             seed = random.random()
             print(f"{i+1:>{width}}/{n:>{width}}: {generate_value(model, seed)}")
 
-    width = max(len(seed) for seed in seeds)
-    for seed in seeds:
-        print(f"{seed:>{width}}: {generate_value(model, seed)}")
+    if len(seeds) > 0:
+        print(
+            f"Generating from {len(seeds)} deterministic seed{'s' if len(seeds) > 1 else ''}"
+        )
+        width = max(len(seed) for seed in seeds)
+        for seed in seeds:
+            print(f"{seed:>{width}}: {generate_value(model, seed)}")
