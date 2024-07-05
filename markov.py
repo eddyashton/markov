@@ -2,20 +2,27 @@
 
 import argparse
 
+from _markov.io import save_model, load_model
+from _markov.train import train_model
+from _markov.generate import generate_values
+
 
 def train_and_generate(args):
-    print("train_and_generate")
-    print(args)
+    print("-=[ Running training and generation ]=-")
+    model = train_model(args.input_file)
+    generate_values(model, args.n, args.seeds)
 
 
 def train_only(args):
-    print("train_only")
-    print(args)
+    print("-=[ Running training only ]=-")
+    model = train_model(args.input_file)
+    save_model(model, args.model_file)
 
 
 def generate_only(args):
-    print("generate_only")
-    print(args)
+    print("-=[ Running generation only ]=-")
+    model = load_model(args.model_file)
+    generate_values(model, args.n, args.seeds)
 
 
 def main():
@@ -52,19 +59,19 @@ def main():
     # Arguments for training
     for sub_parser in (train_and_generate_parser, train_parser):
         sub_parser.add_argument(
-            "input-file",
+            "input_file",
             help="File containing data to learn model from",
         )
 
     # Arguments for training-only mode
     train_parser.add_argument(
-        "model-file",
+        "model_file",
         help="File where learned model should be written to",
     )
 
     # Arguments for generating-only mode
     generate_parser.add_argument(
-        "model-file",
+        "model_file",
         help="File where learned model should be read from",
     )
 
