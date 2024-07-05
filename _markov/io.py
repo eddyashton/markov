@@ -9,7 +9,7 @@ def save_model(model, filename):
         os.makedirs(dirname, exist_ok=True)
 
     print(f"Saving model to {filename}")
-    json.dump(model, open(filename, "w"))
+    json.dump(model, open(filename, "w"), indent=2)
 
 
 def load_model(filename):
