@@ -5,17 +5,17 @@ A test project for exploring and experimenting with Markov chain generation of s
 
 ## Plan
 
-- [ ] Discuss Markov chains
-  - [ ] [Markov chains on Wikipedia](https://en.wikipedia.org/wiki/Markov_chain)
-  - [ ] String generation from a Markov state machine (Q!)
-  - [ ] Procedural generation, learnt models, generative AI
-- [ ] Clone local copies of this repo in Codespaces
-  - [ ] Python REPL (Read-Eval-Print-Loop)
-- [ ] Repo walkthrough
-  - [ ] Basic CLI
-  - [ ] Separated steps for ease of testing
-  - [ ] Sample data files and test files to look at later
-  - [ ] Determinism and pseudo-randomness
+- [X] Discuss Markov chains
+  - [X] [Markov chains on Wikipedia](https://en.wikipedia.org/wiki/Markov_chain)
+  - [X] String generation from a Markov state machine (Q!)
+  - [X] Procedural generation, learnt models, generative AI
+- [X] Clone local copies of this repo in Codespaces
+  - [X] Python REPL (Read-Eval-Print-Loop)
+- [X] Repo walkthrough
+  - [X] Basic CLI
+  - [X] Separated steps for ease of testing
+  - [X] Sample data files and test files to look at later
+  - [X] Determinism and pseudo-randomness
 - [ ] Implement `generate_value()`, with a hand-built hard-coded model value
   - [ ] Loop
   - [ ] Tombstone values
