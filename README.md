@@ -17,13 +17,13 @@ A test project for exploring and experimenting with Markov chain generation of s
   - [X] Sample data files and test files to look at later
   - [X] Determinism and pseudo-randomness
 - [ ] Implement `generate_value()`, with a hand-built hard-coded model value
-  - [ ] Loop
-  - [ ] Tombstone values
-  - [ ] [Python random module](https://docs.python.org/3/library/random.html)
-  - [ ] Weighted randomness
-  - [ ] [random.choices](https://docs.python.org/3/library/random.html#random.choices)
-  - [ ] Loop termination
-  - [ ] String concatenation
+  - [X] Loop
+  - [X] Tombstone values
+  - [X] [Python random module](https://docs.python.org/3/library/random.html)
+  - [X] Weighted randomness
+  - [X] [random.choices](https://docs.python.org/3/library/random.html#random.choices)
+  - [X] Loop termination
+  - [X] String concatenation
 - [ ] Implement `train_model()`
   - [ ] Pairs of characters
   - [ ] Nested dict construction, access
