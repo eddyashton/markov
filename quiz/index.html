@@ -191,12 +191,150 @@
             background: linear-gradient(90deg, #28a745 0%, #20c997 100%);
             transition: width 0.3s ease;
         }
+
+        .filter-container {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 15px;
+            margin-bottom: 30px;
+        }
+
+        .filter-title {
+            font-size: 1.2em;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 15px;
+        }
+
+        .filter-options {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            justify-content: center;
+        }
+
+        .filter-option {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 12px;
+            background: white;
+            border: 2px solid #dee2e6;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .filter-option:hover {
+            border-color: #667eea;
+            background: #f8f9ff;
+        }
+
+        .filter-option.active {
+            border-color: #667eea;
+            background: #667eea;
+            color: white;
+        }
+
+        .filter-checkbox {
+            margin: 0;
+            cursor: pointer;
+        }
+
+        .filter-label {
+            font-weight: 500;
+            cursor: pointer;
+            user-select: none;
+        }
+
+        .per-file-stats-container {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 15px;
+            margin-bottom: 30px;
+        }
+
+        .per-file-stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+            gap: 8px;
+            margin-top: 15px;
+        }
+
+        .file-stat-item {
+            background: white;
+            padding: 8px;
+            border-radius: 6px;
+            text-align: center;
+            border: 1px solid #dee2e6;
+            font-size: 0.85em;
+        }
+
+        .file-stat-item.no-data {
+            background: #f8f9fa;
+            border-color: #e9ecef;
+            opacity: 0.7;
+        }
+
+        .file-stat-name {
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 4px;
+            font-size: 0.9em;
+            line-height: 1.1;
+        }
+
+        .file-stat-numbers {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin-bottom: 4px;
+            font-size: 0.9em;
+        }
+
+        .file-stat-correct {
+            color: #28a745;
+            font-weight: 600;
+        }
+
+        .file-stat-total {
+            color: #666;
+            font-weight: 500;
+        }
+
+        .file-stat-accuracy {
+            font-size: 1em;
+            font-weight: bold;
+            color: #667eea;
+            margin-bottom: 4px;
+        }
+
+        .file-accuracy-bar {
+            width: 100%;
+            height: 3px;
+            background: #e9ecef;
+            border-radius: 2px;
+            overflow: hidden;
+        }
+
+        .file-accuracy-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #28a745 0%, #20c997 100%);
+            transition: width 0.3s ease;
+        }
     </style>
 </head>
 
 <body>
     <div class="quiz-container">
         <h1>📊 Data Source Quiz</h1>
+
+        <div class="filter-container">
+            <div class="filter-title">Select Data Sources</div>
+            <div class="filter-options" id="filterOptions">
+                <!-- Filter options will be populated by JavaScript -->
+            </div>
+        </div>
 
         <div class="stats-container">
             <div class="stat-item">
@@ -213,6 +351,13 @@
                 <div class="accuracy-bar">
                     <div class="accuracy-fill" id="accuracyFill" style="width: 0%"></div>
                 </div>
+            </div>
+        </div>
+
+        <div class="per-file-stats-container" id="perFileStatsContainer" style="display: none;">
+            <div class="filter-title">Per-File Statistics</div>
+            <div class="per-file-stats" id="perFileStats">
+                <!-- Per-file statistics will be populated by JavaScript -->
             </div>
         </div>
 
@@ -235,56 +380,157 @@
         class DataSourceQuiz {
             constructor() {
                 this.data = {};
+                this.sources = {};
+                this.activeSources = new Set(); // Track which sources are currently active
                 this.currentEntry = null;
                 this.currentSource = null;
                 this.totalQuestions = 0;
                 this.correctAnswers = 0;
+                this.perFileStats = {}; // Track statistics per file
                 this.gameState = 'waiting'; // 'waiting', 'answered'
-
-                this.sources = {
-                    'emperors': { name: 'Roman Emperors', color: '#e74c3c' },
-                    'names': { name: 'Modern Names', color: '#3498db' },
-                    'shakespeare': { name: 'Shakespeare Quotes', color: '#9b59b6' },
-                    'towns': { name: 'Town Names', color: '#27ae60' }
-                };
 
                 this.init();
             }
 
             async init() {
+                await this.discoverDataFiles();
                 await this.loadData();
+                this.createFilterOptions();
                 this.setupEventListeners();
+                this.updatePerFileStats(); // Show all files initially
                 this.nextQuestion();
+            }
+
+            async discoverDataFiles() {
+                try {
+                    // Use the API endpoint to get list of data files
+                    const response = await fetch('/api/data-files');
+                    const data = await response.json();
+
+                    if (data.error) {
+                        throw new Error(data.error);
+                    }
+
+                    const files = data.files;
+
+                    if (files.length === 0) {
+                        throw new Error('No .txt files found in data directory');
+                    }
+
+                    // Build sources object
+                    this.sources = {};
+                    files.forEach((filename, index) => {
+                        const key = filename.replace('.txt', '');
+                        this.sources[key] = {
+                            name: filename
+                        };
+                    });
+
+                    console.log('Discovered data files:', Object.keys(this.sources));
+
+                    // Initialize all sources as active
+                    this.activeSources = new Set(Object.keys(this.sources));
+
+                    // Initialize per-file statistics
+                    this.initializePerFileStats();
+
+                } catch (error) {
+                    console.error('Error discovering data files:', error);
+                    // Fall back to hardcoded files if discovery fails
+                    this.sources = {
+                        'emperors': { name: 'emperors.txt' },
+                        'names': { name: 'names.txt' },
+                        'shakespeare': { name: 'shakespeare.txt' },
+                        'towns': { name: 'towns.txt' }
+                    };
+                    console.log('Using fallback data files');
+
+                    // Initialize all sources as active
+                    this.activeSources = new Set(Object.keys(this.sources));
+
+                    // Initialize per-file statistics
+                    this.initializePerFileStats();
+                }
             }
 
             async loadData() {
                 try {
-                    const responses = await Promise.all([
-                        fetch('../data/emperors.txt'),
-                        fetch('../data/names.txt'),
-                        fetch('../data/shakespeare.txt'),
-                        fetch('../data/towns.txt')
-                    ]);
+                    const sourceKeys = Object.keys(this.sources);
+                    if (sourceKeys.length === 0) {
+                        throw new Error('No data files discovered');
+                    }
+
+                    const responses = await Promise.all(
+                        sourceKeys.map(key => fetch(`../data/${this.sources[key].name}`))
+                    );
 
                     const texts = await Promise.all(responses.map(r => r.text()));
 
-                    this.data = {
-                        emperors: texts[0].split('\n').filter(line => line.trim()),
-                        names: texts[1].split('\n').filter(line => line.trim()),
-                        shakespeare: texts[2].split('\n').filter(line => line.trim()),
-                        towns: texts[3].split('\n').filter(line => line.trim())
-                    };
-
-                    console.log('Data loaded successfully:', {
-                        emperors: this.data.emperors.length,
-                        names: this.data.names.length,
-                        shakespeare: this.data.shakespeare.length,
-                        towns: this.data.towns.length
+                    this.data = {};
+                    sourceKeys.forEach((key, index) => {
+                        this.data[key] = texts[index].split('\n').map(line => line.trim()).filter(line => line);
                     });
+
+                    console.log('Data loaded successfully:',
+                        Object.fromEntries(
+                            Object.keys(this.data).map(key => [key, this.data[key].length])
+                        )
+                    );
                 } catch (error) {
                     console.error('Error loading data:', error);
                     document.getElementById('entryDisplay').innerHTML =
                         '<span style="color: #dc3545;">Error loading data files. Please make sure the data directory is accessible.</span>';
+                }
+            }
+
+            initializePerFileStats() {
+                this.perFileStats = {};
+                Object.keys(this.sources).forEach(sourceKey => {
+                    this.perFileStats[sourceKey] = {
+                        total: 0,
+                        correct: 0,
+                        accuracy: 0
+                    };
+                });
+            }
+
+            createFilterOptions() {
+                const container = document.getElementById('filterOptions');
+                container.innerHTML = '';
+
+                Object.keys(this.sources).forEach(sourceKey => {
+                    const option = document.createElement('div');
+                    option.className = 'filter-option active';
+                    option.innerHTML = `
+                        <input type="checkbox" class="filter-checkbox" id="filter-${sourceKey}" checked>
+                        <label class="filter-label" for="filter-${sourceKey}">${this.sources[sourceKey].name}</label>
+                    `;
+
+                    const checkbox = option.querySelector('.filter-checkbox');
+                    checkbox.addEventListener('change', () => {
+                        this.toggleSource(sourceKey, checkbox.checked);
+                        option.classList.toggle('active', checkbox.checked);
+                    });
+
+                    container.appendChild(option);
+                });
+            }
+
+            toggleSource(sourceKey, isActive) {
+                if (isActive) {
+                    this.activeSources.add(sourceKey);
+                } else {
+                    this.activeSources.delete(sourceKey);
+                }
+
+                // If no sources are active, show a message
+                if (this.activeSources.size === 0) {
+                    document.getElementById('entryDisplay').innerHTML =
+                        '<span style="color: #dc3545;">Please select at least one data source.</span>';
+                    document.getElementById('optionsContainer').innerHTML = '';
+                } else if (this.gameState === 'waiting') {
+                    // If we're waiting for an answer and sources changed, get a new question
+                    this.nextQuestion();
                 }
             }
 
@@ -295,8 +541,12 @@
             }
 
             selectRandomEntry() {
-                const sourceKeys = Object.keys(this.data);
-                const randomSource = sourceKeys[Math.floor(Math.random() * sourceKeys.length)];
+                const activeSourceKeys = Array.from(this.activeSources);
+                if (activeSourceKeys.length === 0) {
+                    return null;
+                }
+
+                const randomSource = activeSourceKeys[Math.floor(Math.random() * activeSourceKeys.length)];
                 const entries = this.data[randomSource];
                 const randomEntry = entries[Math.floor(Math.random() * entries.length)];
 
@@ -310,13 +560,25 @@
                 document.getElementById('feedback').style.display = 'none';
                 document.getElementById('nextButton').style.display = 'none';
 
-                // Select random entry
-                const { source, entry } = this.selectRandomEntry();
-                this.currentSource = source;
-                this.currentEntry = entry;
+                // Check if we have active sources
+                if (this.activeSources.size === 0) {
+                    document.getElementById('entryDisplay').innerHTML =
+                        '<span style="color: #dc3545;">Please select at least one data source.</span>';
+                    document.getElementById('optionsContainer').innerHTML = '';
+                    return;
+                }
+
+                // Select random entry from active sources
+                const randomEntryData = this.selectRandomEntry();
+                if (!randomEntryData) {
+                    return;
+                }
+
+                this.currentSource = randomEntryData.source;
+                this.currentEntry = randomEntryData.entry;
 
                 // Display entry
-                document.getElementById('entryDisplay').innerHTML = `"${entry}"`;
+                document.getElementById('entryDisplay').innerHTML = `"${this.currentEntry}"`;
 
                 // Create options
                 this.createOptions();
@@ -331,6 +593,12 @@
                     button.className = 'option-button';
                     button.textContent = this.sources[sourceKey].name;
                     button.dataset.source = sourceKey;
+
+                    // Hide buttons for inactive sources
+                    if (!this.activeSources.has(sourceKey)) {
+                        button.style.display = 'none';
+                    }
+
                     button.addEventListener('click', () => this.selectAnswer(sourceKey));
                     container.appendChild(button);
                 });
@@ -359,8 +627,17 @@
                     this.correctAnswers++;
                 }
 
+                // Update per-file statistics
+                this.perFileStats[this.currentSource].total++;
+                if (isCorrect) {
+                    this.perFileStats[this.currentSource].correct++;
+                }
+                this.perFileStats[this.currentSource].accuracy =
+                    Math.round((this.perFileStats[this.currentSource].correct / this.perFileStats[this.currentSource].total) * 100);
+
                 this.showFeedback(isCorrect);
                 this.updateStats();
+                this.updatePerFileStats();
 
                 // Show next button
                 document.getElementById('nextButton').style.display = 'inline-block';
@@ -390,6 +667,56 @@
 
                 document.getElementById('accuracy').textContent = `${accuracy}%`;
                 document.getElementById('accuracyFill').style.width = `${accuracy}%`;
+            }
+
+            updatePerFileStats() {
+                const container = document.getElementById('perFileStats');
+                const perFileContainer = document.getElementById('perFileStatsContainer');
+
+                // Always show the per-file stats container
+                perFileContainer.style.display = 'block';
+
+                container.innerHTML = '';
+
+                // Show all files, regardless of whether they have stats
+                Object.keys(this.sources).forEach(sourceKey => {
+                    const stats = this.perFileStats[sourceKey];
+                    const statItem = document.createElement('div');
+                    statItem.className = 'file-stat-item';
+
+                    if (stats.total === 0) {
+                        // No data yet - show placeholder
+                        statItem.classList.add('no-data');
+                        statItem.innerHTML = `
+                            <div class="file-stat-name">${this.sources[sourceKey].name}</div>
+                            <div class="file-stat-numbers">
+                                <span class="file-stat-correct">0</span>
+                                <span>/</span>
+                                <span class="file-stat-total">0</span>
+                            </div>
+                            <div class="file-stat-accuracy">--</div>
+                            <div class="file-accuracy-bar">
+                                <div class="file-accuracy-fill" style="width: 0%"></div>
+                            </div>
+                        `;
+                    } else {
+                        // Has data - show actual stats
+                        statItem.innerHTML = `
+                            <div class="file-stat-name">${this.sources[sourceKey].name}</div>
+                            <div class="file-stat-numbers">
+                                <span class="file-stat-correct">${stats.correct}</span>
+                                <span>/</span>
+                                <span class="file-stat-total">${stats.total}</span>
+                            </div>
+                            <div class="file-stat-accuracy">${stats.accuracy}%</div>
+                            <div class="file-accuracy-bar">
+                                <div class="file-accuracy-fill" style="width: ${stats.accuracy}%"></div>
+                            </div>
+                        `;
+                    }
+
+                    container.appendChild(statItem);
+                });
             }
         }
 
