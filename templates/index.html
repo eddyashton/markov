@@ -1,0 +1,670 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Markov Chain Generator</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100vh;
+      padding: 20px;
+    }
+
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      background: white;
+      border-radius: 20px;
+      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+      overflow: hidden;
+    }
+
+    .header {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      padding: 40px;
+      text-align: center;
+    }
+
+    .header h1 {
+      font-size: 3em;
+      font-weight: 300;
+      margin-bottom: 10px;
+    }
+
+    .header p {
+      font-size: 1.2em;
+      opacity: 0.9;
+    }
+
+    .main-content {
+      padding: 40px;
+    }
+
+    .mode-selector {
+      display: flex;
+      justify-content: center;
+      gap: 10px;
+      margin-bottom: 40px;
+      flex-wrap: wrap;
+    }
+
+    .mode-button {
+      padding: 15px 30px;
+      border: 2px solid #667eea;
+      background: white;
+      color: #667eea;
+      border-radius: 10px;
+      cursor: pointer;
+      font-size: 1.1em;
+      font-weight: 500;
+      transition: all 0.3s ease;
+      min-width: 180px;
+    }
+
+    .mode-button:hover {
+      background: #667eea;
+      color: white;
+      transform: translateY(-2px);
+    }
+
+    .mode-button.active {
+      background: #667eea;
+      color: white;
+    }
+
+    .form-section {
+      display: none;
+      background: #f8f9fa;
+      padding: 30px;
+      border-radius: 15px;
+      margin-bottom: 30px;
+    }
+
+    .form-section.active {
+      display: block;
+    }
+
+    .form-group {
+      margin-bottom: 20px;
+    }
+
+    .form-group label {
+      display: block;
+      margin-bottom: 8px;
+      font-weight: 600;
+      color: #333;
+    }
+
+    .form-group select,
+    .form-group input,
+    .form-group textarea {
+      width: 100%;
+      padding: 12px;
+      border: 2px solid #dee2e6;
+      border-radius: 8px;
+      font-size: 16px;
+      transition: border-color 0.3s ease;
+    }
+
+    .form-group select:focus,
+    .form-group input:focus,
+    .form-group textarea:focus {
+      outline: none;
+      border-color: #667eea;
+    }
+
+    .form-group textarea {
+      resize: vertical;
+      min-height: 100px;
+    }
+
+    .form-row {
+      display: flex;
+      gap: 20px;
+      align-items: end;
+    }
+
+    .form-row .form-group {
+      flex: 1;
+    }
+
+    .execute-button {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      border: none;
+      padding: 15px 30px;
+      border-radius: 10px;
+      font-size: 1.1em;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      width: 100%;
+      margin-top: 20px;
+    }
+
+    .execute-button:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
+    }
+
+    .execute-button:disabled {
+      background: #ccc;
+      cursor: not-allowed;
+      transform: none;
+    }
+
+    .loading {
+      display: none;
+      text-align: center;
+      padding: 20px;
+      color: #667eea;
+      font-style: italic;
+    }
+
+    .results {
+      background: #f8f9fa;
+      padding: 30px;
+      border-radius: 15px;
+      margin-top: 30px;
+      display: none;
+    }
+
+    .results.show {
+      display: block;
+    }
+
+    .results h3 {
+      color: #333;
+      margin-bottom: 20px;
+      font-size: 1.3em;
+    }
+
+    .result-item {
+      background: white;
+      padding: 15px;
+      margin-bottom: 10px;
+      border-radius: 8px;
+      border-left: 4px solid #667eea;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .result-value {
+      font-family: 'Courier New', monospace;
+      font-size: 1.1em;
+      font-weight: bold;
+      color: #333;
+    }
+
+    .result-meta {
+      color: #666;
+      font-size: 0.9em;
+    }
+
+    .error {
+      background: #f8d7da;
+      color: #721c24;
+      padding: 15px;
+      border-radius: 8px;
+      margin-top: 20px;
+      border-left: 4px solid #dc3545;
+    }
+
+    .success {
+      background: #d4edda;
+      color: #155724;
+      padding: 15px;
+      border-radius: 8px;
+      margin-top: 20px;
+      border-left: 4px solid #28a745;
+    }
+
+    .help-text {
+      font-size: 0.9em;
+      color: #666;
+      margin-top: 5px;
+    }
+
+    @media (max-width: 768px) {
+      .mode-selector {
+        flex-direction: column;
+        align-items: center;
+      }
+
+      .form-row {
+        flex-direction: column;
+      }
+
+      .header h1 {
+        font-size: 2em;
+      }
+
+      .main-content {
+        padding: 20px;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <div class="container">
+    <div class="header">
+      <h1>🔗 Markov Chain Generator</h1>
+      <p>Train models and generate values using Markov chains</p>
+    </div>
+
+    <div class="main-content">
+      <div class="mode-selector">
+        <button class="mode-button active" data-mode="train-and-generate">Train & Generate</button>
+        <button class="mode-button" data-mode="train-only">Train Only</button>
+        <button class="mode-button" data-mode="generate-only">Generate Only</button>
+      </div>
+
+      <!-- Train and Generate Mode -->
+      <div id="train-and-generate" class="form-section active">
+        <h2>Train & Generate</h2>
+        <p class="help-text">Train a model from input data and immediately generate values</p>
+
+        <div class="form-group">
+          <label for="tag-input-file">Input Data File</label>
+          <select id="tag-input-file">
+            <option value="">Select a data file...</option>
+          </select>
+          <div class="help-text">Choose a text file to train the model from</div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label for="tag-n">Number of Random Generations</label>
+            <input type="number" id="tag-n" min="0" max="100" value="1">
+            <div class="help-text">Number of random values to generate</div>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="tag-seeds">Deterministic Seeds (optional)</label>
+          <textarea id="tag-seeds" placeholder="Enter seeds, one per line"></textarea>
+          <div class="help-text">Specific seeds for reproducible results (one seed per line)</div>
+        </div>
+
+        <button class="execute-button" onclick="trainAndGenerate()">Train & Generate</button>
+      </div>
+
+      <!-- Train Only Mode -->
+      <div id="train-only" class="form-section">
+        <h2>Train Only</h2>
+        <p class="help-text">Train a model from input data and save it to a file</p>
+
+        <div class="form-group">
+          <label for="t-input-file">Input Data File</label>
+          <select id="t-input-file">
+            <option value="">Select a data file...</option>
+          </select>
+          <div class="help-text">Choose a text file to train the model from</div>
+        </div>
+
+        <div class="form-group">
+          <label for="t-model-file">Model Output File</label>
+          <input type="text" id="t-model-file" placeholder="model.json">
+          <div class="help-text">Name for the output model file (will be saved in models/ directory)</div>
+        </div>
+
+        <button class="execute-button" onclick="trainOnly()">Train Model</button>
+      </div>
+
+      <!-- Generate Only Mode -->
+      <div id="generate-only" class="form-section">
+        <h2>Generate Only</h2>
+        <p class="help-text">Generate values from a previously trained model</p>
+
+        <div class="form-group">
+          <label for="g-model-file">Model File</label>
+          <select id="g-model-file">
+            <option value="">Select a model file...</option>
+          </select>
+          <div class="help-text">Choose a previously saved model file</div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label for="g-n">Number of Random Generations</label>
+            <input type="number" id="g-n" min="0" max="100" value="1">
+            <div class="help-text">Number of random values to generate</div>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="g-seeds">Deterministic Seeds (optional)</label>
+          <textarea id="g-seeds" placeholder="Enter seeds, one per line"></textarea>
+          <div class="help-text">Specific seeds for reproducible results (one seed per line)</div>
+        </div>
+
+        <button class="execute-button" onclick="generateOnly()">Generate Values</button>
+      </div>
+
+      <div class="loading" id="loading">
+        <p>Processing... Please wait</p>
+      </div>
+
+      <div class="results" id="results">
+        <h3>Results</h3>
+        <div id="results-content"></div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // Global variables
+    let currentMode = 'train-and-generate';
+
+    // Initialize the application
+    document.addEventListener('DOMContentLoaded', function () {
+      loadDataFiles();
+      loadModelFiles();
+      setupModeSelector();
+    });
+
+    function setupModeSelector() {
+      const modeButtons = document.querySelectorAll('.mode-button');
+      const formSections = document.querySelectorAll('.form-section');
+
+      modeButtons.forEach(button => {
+        button.addEventListener('click', function () {
+          const mode = this.dataset.mode;
+
+          // Update button states
+          modeButtons.forEach(btn => btn.classList.remove('active'));
+          this.classList.add('active');
+
+          // Update form visibility
+          formSections.forEach(section => {
+            section.classList.remove('active');
+          });
+          document.getElementById(mode).classList.add('active');
+
+          currentMode = mode;
+          hideResults();
+        });
+      });
+    }
+
+    async function loadDataFiles() {
+      try {
+        const response = await fetch('/api/data-files');
+        const data = await response.json();
+
+        if (data.error) {
+          console.error('Error loading data files:', data.error);
+          return;
+        }
+
+        const selects = ['tag-input-file', 't-input-file'];
+        selects.forEach(selectId => {
+          const select = document.getElementById(selectId);
+          select.innerHTML = '<option value="">Select a data file...</option>';
+          data.files.forEach(file => {
+            const option = document.createElement('option');
+            option.value = file;
+            option.textContent = file;
+            select.appendChild(option);
+          });
+        });
+      } catch (error) {
+        console.error('Error loading data files:', error);
+      }
+    }
+
+    async function loadModelFiles() {
+      try {
+        const response = await fetch('/api/model-files');
+        const data = await response.json();
+
+        if (data.error) {
+          console.error('Error loading model files:', data.error);
+          return;
+        }
+
+        const select = document.getElementById('g-model-file');
+        select.innerHTML = '<option value="">Select a model file...</option>';
+        data.files.forEach(file => {
+          const option = document.createElement('option');
+          option.value = file;
+          option.textContent = file;
+          select.appendChild(option);
+        });
+      } catch (error) {
+        console.error('Error loading model files:', error);
+      }
+    }
+
+    function parseSeeds(seedsText) {
+      if (!seedsText.trim()) return [];
+
+      // Split by newlines only, then clean up
+      return seedsText.split(/\n+/)
+        .map(s => s.trim())
+        .filter(s => s.length > 0);
+    }
+
+    function showLoading() {
+      document.getElementById('loading').style.display = 'block';
+      document.querySelectorAll('.execute-button').forEach(btn => {
+        btn.disabled = true;
+      });
+    }
+
+    function hideLoading() {
+      document.getElementById('loading').style.display = 'none';
+      document.querySelectorAll('.execute-button').forEach(btn => {
+        btn.disabled = false;
+      });
+    }
+
+    function showResults(results, message = null) {
+      const resultsDiv = document.getElementById('results');
+      const resultsContent = document.getElementById('results-content');
+
+      resultsContent.innerHTML = '';
+
+      if (message) {
+        const messageDiv = document.createElement('div');
+        messageDiv.className = 'success';
+        messageDiv.textContent = message;
+        resultsContent.appendChild(messageDiv);
+      }
+
+      if (results && results.length > 0) {
+        results.forEach(result => {
+          const resultDiv = document.createElement('div');
+          resultDiv.className = 'result-item';
+
+          const valueDiv = document.createElement('div');
+          valueDiv.className = 'result-value';
+          valueDiv.textContent = result.value;
+
+          const metaDiv = document.createElement('div');
+          metaDiv.className = 'result-meta';
+
+          if (result.type === 'random') {
+            metaDiv.textContent = `Random #${result.index} (seed: ${result.seed})`;
+          } else if (result.type === 'seeded') {
+            metaDiv.textContent = `Seed: ${result.seed}`;
+          }
+
+          resultDiv.appendChild(valueDiv);
+          resultDiv.appendChild(metaDiv);
+          resultsContent.appendChild(resultDiv);
+        });
+      }
+
+      resultsDiv.classList.add('show');
+    }
+
+    function showError(message) {
+      const resultsDiv = document.getElementById('results');
+      const resultsContent = document.getElementById('results-content');
+
+      resultsContent.innerHTML = '';
+
+      const errorDiv = document.createElement('div');
+      errorDiv.className = 'error';
+      errorDiv.textContent = message;
+      resultsContent.appendChild(errorDiv);
+
+      resultsDiv.classList.add('show');
+    }
+
+    function hideResults() {
+      document.getElementById('results').classList.remove('show');
+    }
+
+    async function trainAndGenerate() {
+      const inputFile = document.getElementById('tag-input-file').value;
+      const n = parseInt(document.getElementById('tag-n').value) || 0;
+      const seedsText = document.getElementById('tag-seeds').value;
+
+      if (!inputFile) {
+        showError('Please select an input data file');
+        return;
+      }
+
+      const seeds = parseSeeds(seedsText);
+
+      if (n === 0 && seeds.length === 0) {
+        showError('Please specify either a number of random generations or provide seeds');
+        return;
+      }
+
+      showLoading();
+
+      try {
+        const response = await fetch('/api/train-and-generate', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            input_file: inputFile,
+            n: n,
+            seeds: seeds
+          })
+        });
+
+        const data = await response.json();
+
+        if (data.error) {
+          showError(data.error);
+        } else {
+          showResults(data.results, `Model trained from ${inputFile} and generated ${data.results.length} values`);
+        }
+      } catch (error) {
+        showError('Error: ' + error.message);
+      } finally {
+        hideLoading();
+      }
+    }
+
+    async function trainOnly() {
+      const inputFile = document.getElementById('t-input-file').value;
+      const modelFile = document.getElementById('t-model-file').value;
+
+      if (!inputFile) {
+        showError('Please select an input data file');
+        return;
+      }
+
+      if (!modelFile) {
+        showError('Please enter a model file name');
+        return;
+      }
+
+      showLoading();
+
+      try {
+        const response = await fetch('/api/train-only', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            input_file: inputFile,
+            model_file: modelFile
+          })
+        });
+
+        const data = await response.json();
+
+        if (data.error) {
+          showError(data.error);
+        } else {
+          showResults([], data.message);
+          // Refresh model files list
+          loadModelFiles();
+        }
+      } catch (error) {
+        showError('Error: ' + error.message);
+      } finally {
+        hideLoading();
+      }
+    }
+
+    async function generateOnly() {
+      const modelFile = document.getElementById('g-model-file').value;
+      const n = parseInt(document.getElementById('g-n').value) || 0;
+      const seedsText = document.getElementById('g-seeds').value;
+
+      if (!modelFile) {
+        showError('Please select a model file');
+        return;
+      }
+
+      const seeds = parseSeeds(seedsText);
+
+      if (n === 0 && seeds.length === 0) {
+        showError('Please specify either a number of random generations or provide seeds');
+        return;
+      }
+
+      showLoading();
+
+      try {
+        const response = await fetch('/api/generate-only', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            model_file: modelFile,
+            n: n,
+            seeds: seeds
+          })
+        });
+
+        const data = await response.json();
+
+        if (data.error) {
+          showError(data.error);
+        } else {
+          showResults(data.results, `Generated ${data.results.length} values from model ${modelFile}`);
+        }
+      } catch (error) {
+        showError('Error: ' + error.message);
+      } finally {
+        hideLoading();
+      }
+    }
+  </script>
+</body>
+
+</html>
