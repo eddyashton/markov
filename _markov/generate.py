@@ -6,7 +6,7 @@ def generate_value(model, seed):
     return random.choice([chr(n) for n in range(ord("a"), ord("z") + 1)])
 
 
-def generate_values(model, n, seeds):
+def generate_values(model, n, seeds, porcelain=False):
     if len(seeds) == 0 and n is None:
         n = 1
 
@@ -15,7 +15,13 @@ def generate_values(model, n, seeds):
         width = len(str(n))
         for i in range(n):
             seed = int(random.random() * 1000)
-            print(f"{i+1:>{width}}/{n:>{width}} [seed={seed:>3}]: {generate_value(model, seed)}")
+            value = generate_value(model, seed)
+            if porcelain:
+                print(value)
+            else:
+                print(
+                    f"{i+1:>{width}}/{n:>{width}} [seed={seed:>3}]: {generate_value(model, seed)}"
+                )
 
     if len(seeds) > 0:
         print(
@@ -23,4 +29,8 @@ def generate_values(model, n, seeds):
         )
         width = max(len(seed) for seed in seeds)
         for seed in seeds:
-            print(f"{seed:>{width}}: {generate_value(model, seed)}")
+            value = generate_value(model, seed)
+            if porcelain:
+                print(value)
+            else:
+                print(f"{seed:>{width}}: {generate_value(model, seed)}")

@@ -10,7 +10,7 @@ from _markov.generate import generate_values
 def train_and_generate(args):
     print("-=[ Running training and generation ]=-")
     model = train_model(args.input_file)
-    generate_values(model, args.n, args.seeds)
+    generate_values(model, args.n, args.seeds, args.porcelain)
 
 
 def train_only(args):
@@ -22,7 +22,7 @@ def train_only(args):
 def generate_only(args):
     print("-=[ Running generation only ]=-")
     model = load_model(args.model_file)
-    generate_values(model, args.n, args.seeds)
+    generate_values(model, args.n, args.seeds, args.porcelain)
 
 
 def main():
@@ -86,6 +86,12 @@ def main():
             "-n",
             help="Number of random generations to perform. Defaults to 1, if no explicit seeds are passed",
             type=int,
+        )
+        sub_parser.add_argument(
+            "--porcelain",
+            "-p",
+            help="Print unformatted raw values, suitable for pasting into a data file",
+            action="store_true",
         )
 
     args = parser.parse_args()

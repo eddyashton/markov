@@ -347,7 +347,7 @@
 
         <div class="form-group">
           <label for="t-model-file">Model Output File</label>
-          <input type="text" id="t-model-file" placeholder="model.json" value="model.json">
+          <input type="text" id="t-model-file" placeholder="model.json" value="">
           <div class="help-text">Name for the output model file (will be saved in models/ directory)</div>
         </div>
 
@@ -456,8 +456,28 @@
             select.appendChild(option);
           });
         });
+
+        // Add event listener for train-only input file to update model file name
+        const trainInputSelect = document.getElementById('t-input-file');
+        trainInputSelect.addEventListener('change', function() {
+          updateModelFileName(this.value);
+        });
+
+        // Set initial model file name if there's a default selection
+        if (data.files.length > 0) {
+          updateModelFileName(data.files[0]);
+        }
       } catch (error) {
         console.error('Error loading data files:', error);
+      }
+    }
+
+    function updateModelFileName(inputFileName) {
+      const modelFileInput = document.getElementById('t-model-file');
+      if (inputFileName && inputFileName.trim() !== '') {
+        // Remove .txt extension and add .json
+        const modelFileName = inputFileName.replace(/\.txt$/i, '.json');
+        modelFileInput.value = modelFileName;
       }
     }
 
