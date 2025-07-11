@@ -14,8 +14,8 @@ def generate_values(model, n, seeds):
         print(f"Generating {n} random value{'s' if n > 1 else ''}")
         width = len(str(n))
         for i in range(n):
-            seed = random.random()
-            print(f"{i+1:>{width}}/{n:>{width}}: {generate_value(model, seed)}")
+            seed = int(random.random() * 1000)
+            print(f"{i+1:>{width}}/{n:>{width}} [seed={seed:>3}]: {generate_value(model, seed)}")
 
     if len(seeds) > 0:
         print(
