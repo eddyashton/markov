@@ -230,6 +230,36 @@
       border-left: 4px solid #28a745;
     }
 
+    .model-display {
+      background: #f8f9fa;
+      border: 1px solid #dee2e6;
+      border-radius: 8px;
+      padding: 15px;
+      margin-top: 15px;
+      max-height: 300px;
+      overflow-y: auto;
+    }
+
+    .model-display h4 {
+      margin-bottom: 10px;
+      color: #333;
+      font-size: 1.1em;
+    }
+
+    .model-json {
+      background: #ffffff;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      padding: 10px;
+      font-family: 'Courier New', monospace;
+      font-size: 0.9em;
+      color: #333;
+      white-space: pre-wrap;
+      word-wrap: break-word;
+      max-height: 200px;
+      overflow-y: auto;
+    }
+
     .help-text {
       font-size: 0.9em;
       color: #666;
@@ -294,8 +324,9 @@
 
         <div class="form-group">
           <label for="tag-seeds">Deterministic Seeds (optional)</label>
-          <textarea id="tag-seeds" placeholder="Enter seeds, one per line"></textarea>
-          <div class="help-text">Specific seeds for reproducible results (one seed per line)</div>
+          <textarea id="tag-seeds" placeholder="Enter seeds, one per line (numbers or strings)"></textarea>
+          <div class="help-text">Specific seeds for reproducible results (one seed per line - can be numbers or strings)
+          </div>
         </div>
 
         <button class="execute-button" onclick="trainAndGenerate()">Train & Generate</button>
@@ -316,7 +347,7 @@
 
         <div class="form-group">
           <label for="t-model-file">Model Output File</label>
-          <input type="text" id="t-model-file" placeholder="model.json">
+          <input type="text" id="t-model-file" placeholder="model.json" value="model.json">
           <div class="help-text">Name for the output model file (will be saved in models/ directory)</div>
         </div>
 
@@ -346,8 +377,9 @@
 
         <div class="form-group">
           <label for="g-seeds">Deterministic Seeds (optional)</label>
-          <textarea id="g-seeds" placeholder="Enter seeds, one per line"></textarea>
-          <div class="help-text">Specific seeds for reproducible results (one seed per line)</div>
+          <textarea id="g-seeds" placeholder="Enter seeds, one per line (numbers or strings)"></textarea>
+          <div class="help-text">Specific seeds for reproducible results (one seed per line - can be numbers or strings)
+          </div>
         </div>
 
         <button class="execute-button" onclick="generateOnly()">Generate Values</button>
@@ -413,10 +445,14 @@
         selects.forEach(selectId => {
           const select = document.getElementById(selectId);
           select.innerHTML = '<option value="">Select a data file...</option>';
-          data.files.forEach(file => {
+          data.files.forEach((file, index) => {
             const option = document.createElement('option');
             option.value = file;
             option.textContent = file;
+            // Select the first file as default
+            if (index === 0) {
+              option.selected = true;
+            }
             select.appendChild(option);
           });
         });
@@ -471,7 +507,7 @@
       });
     }
 
-    function showResults(results, message = null) {
+    function showResults(results, message = null, modelData = null) {
       const resultsDiv = document.getElementById('results');
       const resultsContent = document.getElementById('results-content');
 
@@ -482,6 +518,23 @@
         messageDiv.className = 'success';
         messageDiv.textContent = message;
         resultsContent.appendChild(messageDiv);
+      }
+
+      // Show model data if provided
+      if (modelData) {
+        const modelDiv = document.createElement('div');
+        modelDiv.className = 'model-display';
+
+        const modelTitle = document.createElement('h4');
+        modelTitle.textContent = 'Trained Model Data:';
+        modelDiv.appendChild(modelTitle);
+
+        const modelJson = document.createElement('div');
+        modelJson.className = 'model-json';
+        modelJson.textContent = JSON.stringify(modelData, null, 2);
+        modelDiv.appendChild(modelJson);
+
+        resultsContent.appendChild(modelDiv);
       }
 
       if (results && results.length > 0) {
@@ -566,7 +619,11 @@
         if (data.error) {
           showError(data.error);
         } else {
-          showResults(data.results, `Model trained from ${inputFile} and generated ${data.results.length} values`);
+          showResults(
+            data.results,
+            `Model trained from ${inputFile} and generated ${data.results.length} values`,
+            data.model_data
+          );
         }
       } catch (error) {
         showError('Error: ' + error.message);
@@ -584,9 +641,9 @@
         return;
       }
 
+      // Use default model file if not provided
       if (!modelFile) {
-        showError('Please enter a model file name');
-        return;
+        modelFile = 'model.json';
       }
 
       showLoading();
@@ -608,7 +665,7 @@
         if (data.error) {
           showError(data.error);
         } else {
-          showResults([], data.message);
+          showResults([], data.message, data.model_data);
           // Refresh model files list
           loadModelFiles();
         }

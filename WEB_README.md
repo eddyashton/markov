@@ -30,14 +30,17 @@ A web-based interface for the Markov chain generator that provides an intuitive 
 ## Usage
 
 ### Train & Generate Mode
-- Select an input data file from the dropdown
+- Select an input data file from the dropdown (first file is selected by default)
 - Set the number of random generations (optional)
 - Enter deterministic seeds for reproducible results (optional)
 - Click "Train & Generate" to train the model and generate values
+- View the trained model's JSON structure in the results
 
 ### Train Only Mode
-- Select an input data file from the dropdown
-- Enter a name for the output model file
+- Select an input data file from the dropdown (first file is selected by default)
+- Enter a name for the output model file (defaults to "model.json")
+- Click "Train Model" to train and save the model
+- View the trained model's JSON structure in the results
 - Click "Train Model" to train and save the model
 
 ### Generate Only Mode
@@ -75,7 +78,7 @@ markov/
 ## Input Format
 
 - **Data Files**: Plain text files with one entry per line
-- **Seeds**: Can be entered one per line or comma-separated
+- **Seeds**: Can be entered one per line (numbers or strings accepted)
 - **Model Files**: JSON files automatically saved/loaded
 
 ## CLI Equivalent

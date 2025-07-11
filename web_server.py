@@ -91,20 +91,18 @@ def train_and_generate():
         # Generate from specific seeds
         if seeds:
             for seed in seeds:
-                try:
-                    seed_int = int(seed)
-                    value = generate_value(model, seed_int)
-                    results.append({"type": "seeded", "seed": seed_int, "value": value})
-                except ValueError:
-                    results.append(
-                        {
-                            "type": "seeded",
-                            "seed": seed,
-                            "value": f'Error: Invalid seed "{seed}"',
-                        }
-                    )
+                # Pass seed directly - Python's random.seed() accepts strings
+                value = generate_value(model, seed)
+                results.append({"type": "seeded", "seed": seed, "value": value})
 
-        return jsonify({"success": True, "results": results, "model_trained": True})
+        return jsonify(
+            {
+                "success": True,
+                "results": results,
+                "model_trained": True,
+                "model_data": model,
+            }
+        )
 
     except Exception as e:
         return jsonify({"error": str(e)}), 500
@@ -121,7 +119,12 @@ def train_only():
         if not input_file:
             return jsonify({"error": "Input file is required"}), 400
         if not model_file:
-            return jsonify({"error": "Model file is required"}), 400
+            # Use default model file name if not provided
+            model_file = "model.json"
+
+        # Ensure model file has .json extension
+        if not model_file.endswith(".json"):
+            model_file += ".json"
 
         # Check if input file exists
         file_path = f"data/{input_file}"
@@ -140,6 +143,7 @@ def train_only():
                 "success": True,
                 "message": f"Model trained and saved to {model_file}",
                 "model_file": model_file,
+                "model_data": model,
             }
         )
 
@@ -182,18 +186,9 @@ def generate_only():
         # Generate from specific seeds
         if seeds:
             for seed in seeds:
-                try:
-                    seed_int = int(seed)
-                    value = generate_value(model, seed_int)
-                    results.append({"type": "seeded", "seed": seed_int, "value": value})
-                except ValueError:
-                    results.append(
-                        {
-                            "type": "seeded",
-                            "seed": seed,
-                            "value": f'Error: Invalid seed "{seed}"',
-                        }
-                    )
+                # Pass seed directly - Python's random.seed() accepts strings
+                value = generate_value(model, seed)
+                results.append({"type": "seeded", "seed": seed, "value": value})
 
         return jsonify(
             {"success": True, "results": results, "model_loaded": model_file}
