@@ -3,7 +3,20 @@ import random
 
 def generate_value(model, seed):
     random.seed(seed)
-    return random.choice([chr(n) for n in range(ord("a"), ord("z") + 1)])
+    l = []
+    prev = "\n"
+    while True:
+        options = model[prev]
+        choice = random.choices(
+            list(options.keys()),
+            weights=options.values(),
+            k=1,
+        )[0]
+        if choice == "\n":
+            break
+        l.append(choice)
+        prev = choice
+    return "".join(l)
 
 
 def generate_values(model, n, seeds):
