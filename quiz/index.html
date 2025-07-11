@@ -1,0 +1,403 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Data Source Quiz</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .quiz-container {
+            background: white;
+            border-radius: 20px;
+            padding: 40px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            max-width: 800px;
+            width: 100%;
+            text-align: center;
+        }
+
+        h1 {
+            color: #333;
+            margin-bottom: 30px;
+            font-size: 2.5em;
+            font-weight: 300;
+        }
+
+        .stats-container {
+            display: flex;
+            justify-content: space-around;
+            margin-bottom: 30px;
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 15px;
+        }
+
+        .stat-item {
+            text-align: center;
+        }
+
+        .stat-number {
+            font-size: 2em;
+            font-weight: bold;
+            color: #667eea;
+        }
+
+        .stat-label {
+            color: #666;
+            font-size: 0.9em;
+            margin-top: 5px;
+        }
+
+        .question-container {
+            background: #f8f9fa;
+            padding: 30px;
+            border-radius: 15px;
+            margin-bottom: 30px;
+        }
+
+        .question-text {
+            font-size: 1.3em;
+            color: #333;
+            margin-bottom: 20px;
+            line-height: 1.5;
+        }
+
+        .entry-display {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            margin: 20px 0;
+            border-left: 4px solid #667eea;
+            font-size: 1.2em;
+            font-weight: 500;
+            color: #333;
+            min-height: 60px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .options-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        .option-button {
+            padding: 15px 20px;
+            border: 2px solid #667eea;
+            background: white;
+            color: #667eea;
+            border-radius: 10px;
+            cursor: pointer;
+            font-size: 1.1em;
+            font-weight: 500;
+            transition: all 0.3s ease;
+        }
+
+        .option-button:hover {
+            background: #667eea;
+            color: white;
+            transform: translateY(-2px);
+        }
+
+        .option-button.correct {
+            background: #28a745;
+            border-color: #28a745;
+            color: white;
+        }
+
+        .option-button.incorrect {
+            background: #dc3545;
+            border-color: #dc3545;
+            color: white;
+        }
+
+        .option-button:disabled {
+            cursor: not-allowed;
+            opacity: 0.7;
+        }
+
+        .feedback {
+            margin-top: 20px;
+            padding: 15px;
+            border-radius: 10px;
+            font-size: 1.1em;
+            font-weight: 500;
+        }
+
+        .feedback.correct {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+
+        .feedback.incorrect {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+
+        .next-button {
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 10px;
+            font-size: 1.1em;
+            font-weight: 500;
+            cursor: pointer;
+            margin-top: 20px;
+            transition: background 0.3s ease;
+        }
+
+        .next-button:hover {
+            background: #5a6fd8;
+        }
+
+        .loading {
+            color: #666;
+            font-style: italic;
+        }
+
+        .accuracy-bar {
+            width: 100%;
+            height: 8px;
+            background: #e9ecef;
+            border-radius: 4px;
+            overflow: hidden;
+            margin-top: 10px;
+        }
+
+        .accuracy-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #28a745 0%, #20c997 100%);
+            transition: width 0.3s ease;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="quiz-container">
+        <h1>📊 Data Source Quiz</h1>
+
+        <div class="stats-container">
+            <div class="stat-item">
+                <div class="stat-number" id="totalQuestions">0</div>
+                <div class="stat-label">Total Questions</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-number" id="correctAnswers">0</div>
+                <div class="stat-label">Correct Answers</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-number" id="accuracy">0%</div>
+                <div class="stat-label">Accuracy</div>
+                <div class="accuracy-bar">
+                    <div class="accuracy-fill" id="accuracyFill" style="width: 0%"></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="question-container">
+            <div class="question-text">
+                Which data file does this entry come from?
+            </div>
+            <div class="entry-display" id="entryDisplay">
+                <span class="loading">Loading first question...</span>
+            </div>
+            <div class="options-container" id="optionsContainer">
+                <!-- Options will be populated by JavaScript -->
+            </div>
+            <div id="feedback" class="feedback" style="display: none;"></div>
+            <button id="nextButton" class="next-button" style="display: none;">Next Question</button>
+        </div>
+    </div>
+
+    <script>
+        class DataSourceQuiz {
+            constructor() {
+                this.data = {};
+                this.currentEntry = null;
+                this.currentSource = null;
+                this.totalQuestions = 0;
+                this.correctAnswers = 0;
+                this.gameState = 'waiting'; // 'waiting', 'answered'
+
+                this.sources = {
+                    'emperors': { name: 'Roman Emperors', color: '#e74c3c' },
+                    'names': { name: 'Modern Names', color: '#3498db' },
+                    'shakespeare': { name: 'Shakespeare Quotes', color: '#9b59b6' },
+                    'towns': { name: 'Town Names', color: '#27ae60' }
+                };
+
+                this.init();
+            }
+
+            async init() {
+                await this.loadData();
+                this.setupEventListeners();
+                this.nextQuestion();
+            }
+
+            async loadData() {
+                try {
+                    const responses = await Promise.all([
+                        fetch('../data/emperors.txt'),
+                        fetch('../data/names.txt'),
+                        fetch('../data/shakespeare.txt'),
+                        fetch('../data/towns.txt')
+                    ]);
+
+                    const texts = await Promise.all(responses.map(r => r.text()));
+
+                    this.data = {
+                        emperors: texts[0].split('\n').filter(line => line.trim()),
+                        names: texts[1].split('\n').filter(line => line.trim()),
+                        shakespeare: texts[2].split('\n').filter(line => line.trim()),
+                        towns: texts[3].split('\n').filter(line => line.trim())
+                    };
+
+                    console.log('Data loaded successfully:', {
+                        emperors: this.data.emperors.length,
+                        names: this.data.names.length,
+                        shakespeare: this.data.shakespeare.length,
+                        towns: this.data.towns.length
+                    });
+                } catch (error) {
+                    console.error('Error loading data:', error);
+                    document.getElementById('entryDisplay').innerHTML =
+                        '<span style="color: #dc3545;">Error loading data files. Please make sure the data directory is accessible.</span>';
+                }
+            }
+
+            setupEventListeners() {
+                document.getElementById('nextButton').addEventListener('click', () => {
+                    this.nextQuestion();
+                });
+            }
+
+            selectRandomEntry() {
+                const sourceKeys = Object.keys(this.data);
+                const randomSource = sourceKeys[Math.floor(Math.random() * sourceKeys.length)];
+                const entries = this.data[randomSource];
+                const randomEntry = entries[Math.floor(Math.random() * entries.length)];
+
+                return { source: randomSource, entry: randomEntry };
+            }
+
+            nextQuestion() {
+                this.gameState = 'waiting';
+
+                // Hide feedback and next button
+                document.getElementById('feedback').style.display = 'none';
+                document.getElementById('nextButton').style.display = 'none';
+
+                // Select random entry
+                const { source, entry } = this.selectRandomEntry();
+                this.currentSource = source;
+                this.currentEntry = entry;
+
+                // Display entry
+                document.getElementById('entryDisplay').innerHTML = `"${entry}"`;
+
+                // Create options
+                this.createOptions();
+            }
+
+            createOptions() {
+                const container = document.getElementById('optionsContainer');
+                container.innerHTML = '';
+
+                Object.keys(this.sources).forEach(sourceKey => {
+                    const button = document.createElement('button');
+                    button.className = 'option-button';
+                    button.textContent = this.sources[sourceKey].name;
+                    button.dataset.source = sourceKey;
+                    button.addEventListener('click', () => this.selectAnswer(sourceKey));
+                    container.appendChild(button);
+                });
+            }
+
+            selectAnswer(selectedSource) {
+                if (this.gameState !== 'waiting') return;
+
+                this.gameState = 'answered';
+                this.totalQuestions++;
+
+                const buttons = document.querySelectorAll('.option-button');
+                buttons.forEach(button => {
+                    button.disabled = true;
+                    const source = button.dataset.source;
+
+                    if (source === this.currentSource) {
+                        button.classList.add('correct');
+                    } else if (source === selectedSource) {
+                        button.classList.add('incorrect');
+                    }
+                });
+
+                const isCorrect = selectedSource === this.currentSource;
+                if (isCorrect) {
+                    this.correctAnswers++;
+                }
+
+                this.showFeedback(isCorrect);
+                this.updateStats();
+
+                // Show next button
+                document.getElementById('nextButton').style.display = 'inline-block';
+            }
+
+            showFeedback(isCorrect) {
+                const feedback = document.getElementById('feedback');
+                const correctSourceName = this.sources[this.currentSource].name;
+
+                if (isCorrect) {
+                    feedback.textContent = `🎉 Correct! This entry is from ${correctSourceName}.`;
+                    feedback.className = 'feedback correct';
+                } else {
+                    feedback.textContent = `❌ Incorrect. This entry is from ${correctSourceName}.`;
+                    feedback.className = 'feedback incorrect';
+                }
+
+                feedback.style.display = 'block';
+            }
+
+            updateStats() {
+                document.getElementById('totalQuestions').textContent = this.totalQuestions;
+                document.getElementById('correctAnswers').textContent = this.correctAnswers;
+
+                const accuracy = this.totalQuestions > 0 ?
+                    Math.round((this.correctAnswers / this.totalQuestions) * 100) : 0;
+
+                document.getElementById('accuracy').textContent = `${accuracy}%`;
+                document.getElementById('accuracyFill').style.width = `${accuracy}%`;
+            }
+        }
+
+        // Initialize the quiz when the page loads
+        document.addEventListener('DOMContentLoaded', () => {
+            new DataSourceQuiz();
+        });
+    </script>
+</body>
+
+</html>
