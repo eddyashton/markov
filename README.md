@@ -7,10 +7,13 @@ A test project for exploring and experimenting with Markov chain generation of s
 
 - [ ] Discuss Markov chains
   - [ ] [Markov chains on Wikipedia](https://en.wikipedia.org/wiki/Markov_chain)
-  - [ ] String generation from a Markov state machine (Q!)
+  - [ ] String generation from a Markov state machine
   - [ ] Procedural generation, learnt models, generative AI
 - [ ] Clone local copies of this repo in Codespaces
+  - [ ] GitHub accounts
+  - [ ] IDEs, VSCode, Codespaces
   - [ ] Python REPL (Read-Eval-Print-Loop)
+  - [ ] Terminal 101
 - [ ] Repo walkthrough
   - [ ] Basic CLI
   - [ ] Separated steps for ease of testing
