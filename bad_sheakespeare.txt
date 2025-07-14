@@ -1,0 +1,12 @@
+-=[ Running training and generation ]=-
+Generating 10 random values
+ 1/10 [seed=655]: What
+ 2/10 [seed=188]: Upon
+ 3/10 [seed=842]: Will
+ 4/10 [seed=488]: And,
+ 5/10 [seed=725]: And
+ 6/10 [seed= 49]: And
+ 7/10 [seed=413]: What
+ 8/10 [seed=638]: Take
+ 9/10 [seed=473]: Iam
+10/10 [seed=372]: Are

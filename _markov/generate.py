@@ -3,7 +3,18 @@ import random
 
 def generate_value(model, seed):
     random.seed(seed)
-    return random.choice([chr(n) for n in range(ord("a"), ord("z") + 1)])
+    s = ["\n"]
+    while True:
+        current_state = s[-1]
+        probabilities = model[current_state]
+        choice = random.choices(list(probabilities.keys()), weights=list(probabilities.values()))[0]
+        if choice == "\n":
+            break
+        s += [choice]
+
+        "running" => "run", "ning"
+
+    return ' '.join(s).strip()
 
 
 def generate_values(model, n, seeds, porcelain=False):
